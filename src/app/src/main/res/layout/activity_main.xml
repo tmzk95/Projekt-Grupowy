@@ -39,7 +39,7 @@
             android:background="#00ffffff"
             android:singleLine="true"
             android:textSize="60dp"
-            android:textColor="#df3459"
+            android:textColor="#31917b"
             android:layout_marginBottom="10dp" />
 
         <Button
@@ -51,8 +51,8 @@
             android:layout_centerHorizontal="true"
             android:singleLine="true"
             android:background="#00ffffff"
-            android:textSize="31dp"
-            android:textColor="#5837d1"
+            android:textSize="30dp"
+            android:textColor="#df2e54"
             android:textStyle="bold" />
 
         <Button
