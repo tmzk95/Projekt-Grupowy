@@ -1,4 +1,4 @@
-package pl.domino.dominiktomczykprojekt;
+package pl.andrzeje.projektgrupowy;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;

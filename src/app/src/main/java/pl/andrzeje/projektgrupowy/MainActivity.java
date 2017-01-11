@@ -1,5 +1,4 @@
-package pl.domino.dominiktomczykprojekt;
-
+package pl.andrzeje.projektgrupowy;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -27,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         listOfSensors.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 context = getApplicationContext();
-                Intent intent = new Intent(context, ListOfSensors.class);
+                Intent intent = new Intent(context, Stats.class);
                 startActivity(intent);
             }
         });
@@ -35,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
         proximitySensor.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 context = getApplicationContext();
-                Intent intent = new Intent(context, ProximitySensor.class);
+                Intent intent = new Intent(context, NewPlaces.class);
                 startActivity(intent);
             }
         });
@@ -43,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         orientationSensor.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 context = getApplicationContext();
-                Intent intent = new Intent(context, OrientationSensor.class);
+                Intent intent = new Intent(context, Map.class);
                 startActivity(intent);
             }
         });

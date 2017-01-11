@@ -1,4 +1,4 @@
-package pl.domino.dominiktomczykprojekt;
+package pl.andrzeje.projektgrupowy;
 
 import org.junit.Test;
 
