@@ -10,6 +10,8 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -24,10 +26,20 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
-public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener
-        {
+public class Map extends FragmentActivity implements OnMapReadyCallback,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener,
+        GoogleMap.OnCameraMoveStartedListener,
+        GoogleMap.OnCameraMoveListener,
+        GoogleMap.OnCameraMoveCanceledListener,
+        GoogleMap.OnCameraIdleListener,
+        GoogleMap.OnMarkerClickListener
+{
 
     private GoogleApiClient mGoogleApiClient;
     private GoogleMap mMap;
@@ -36,10 +48,10 @@ public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleA
     private Marker mCurrLocationMarker;
     private UiSettings mMapUISet;
     private CameraPosition mLastCameraPosition;
-//    TextView tvField1;
-    private static final LatLng LUBLIN = new LatLng(51.2473568,22.5638809);
+    private boolean czySledzic;
+    private static final LatLng LUBLIN = new LatLng(51.2473568, 22.5638809);
     private static final String TAG = Map.class.getSimpleName();
-    private static final float MaxDistFromCityCentre = 15000; // maksymalna odleglosc obecnej lokalizacji urzadzenia od zmiennej LUBLIN
+    private static final float MaxDistFromCityCentre = 10000; // maksymalna odleglosc obecnej lokalizacji urzadzenia od zmiennej LUBLIN
 
     void SendToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
@@ -48,26 +60,41 @@ public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleA
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG,"onCreate");
+        Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_map);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        mLastCameraPosition = null;
-        //tvField1 = (TextView) findViewById(R.id.textView);
+
+        CheckBox toggle = (CheckBox) findViewById(R.id.cbSledzenie);
+        toggle.setChecked(true);
+        czySledzic = true;
+        toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                czySledzic = isChecked;
+                ZnakSledzenia(isChecked);
+
+            }
+        });
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        Log.d(TAG,"onMapReady");
+        Log.d(TAG, "onMapReady");
 
         if (!checkLocationPermission()) {
             SendToast("checkSelfPermission error");
             return;
         }
+        mMap.setOnCameraIdleListener(this);
+        mMap.setOnCameraMoveStartedListener(this);
+        mMap.setOnCameraMoveListener(this);
+        mMap.setOnCameraMoveCanceledListener(this);
+
         buildGoogleApiClient();
-        mMap.setMyLocationEnabled(true);
+        mMap.setMyLocationEnabled(czySledzic);
 
         mMapUISet = mMap.getUiSettings();
         mMapUISet.setZoomControlsEnabled(true);
@@ -81,6 +108,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleA
         });
 
     }
+
     protected synchronized void buildGoogleApiClient() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -89,47 +117,52 @@ public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleA
                 .build();
         mGoogleApiClient.connect();
     }
+
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG,"onStart");
-        if(mGoogleApiClient != null) {
+        Log.d(TAG, "onStart");
+        if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
+            if (mGoogleApiClient.isConnected() && mLocationRequest != null) {
+                startLocationUpdates();
+            }
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d(TAG,"onStop");
-        if(mGoogleApiClient != null) {
-            mLastCameraPosition = mMap.getCameraPosition();
+        Log.d(TAG, "onStop");
+        if (mGoogleApiClient != null) {
+            if (mLocationRequest != null) {
+                //stopLocationUpdates();
+            }
+            //mLastCameraPosition = mMap.getCameraPosition();
             mGoogleApiClient.disconnect();
         }
     }
+
     @Override
     public void onBackPressed() {
-        Log.d(TAG,"onBackPressed");
+        Log.d(TAG, "onBackPressed");
         super.onBackPressed();
     }
+
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        Log.d(TAG,"onConnected");
+        Log.d(TAG, "onConnected");
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(500);
-        mLocationRequest.setFastestInterval(200);
+        mLocationRequest.setFastestInterval(100);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        if(!checkLocationPermission()){
-            SendToast("checkSelfPermission onConnected error");
-            return;
-        }
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-
+        startLocationUpdates();
     }
+
     @Override
     public void onLocationChanged(Location location) {
         mLastLocation = location;
-        Log.d(TAG,"onLocationChanged");
+        Log.d(TAG, "onLocationChanged");
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         /*
                 CZASEM PRZY OTWIERANIU MAPY KAMERA WEDRUJE W PIZ*U DALEKO
@@ -139,28 +172,37 @@ public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleA
                 SendToast(latLng.latitude + " " + latLng.longitude);
         */
 
-        float []result = new float[1];
-        Location.distanceBetween(LUBLIN.latitude,LUBLIN.longitude,latLng.latitude,latLng.longitude,result);
-        if(result[0] > MaxDistFromCityCentre) SendToast(String.valueOf(result[0]));
-
-
-        if(mLastCameraPosition != null ) {
-            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mLastCameraPosition));
-        } else {
-            moveCamera(latLng, 16);
-        }
-
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-        }
+        float[] result = new float[1];
+        Location.distanceBetween(LUBLIN.latitude, LUBLIN.longitude, latLng.latitude, latLng.longitude, result);
+        if (result[0] > MaxDistFromCityCentre) SendToast("Aplikacja obsługuje tylko teren Lublina!");
+        if(czySledzic)
+            moveCamera(latLng,16);
     }
-    private void moveCamera(LatLng where,int zoom)
-    {
+
+    private void moveCamera(LatLng where, int zoom) {
         mMap.moveCamera(CameraUpdateFactory.newLatLng(where));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(zoom));
     }
+
+    private void moveCamera(LatLng where) {
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(where));
+    }
+
+    private void startLocationUpdates() {
+        if (!checkLocationPermission()) {
+            SendToast("checkSelfPermission onConnected error");
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+    protected void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+    }
+
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-    public boolean checkLocationPermission(){
+
+    public boolean checkLocationPermission() {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
 
@@ -183,8 +225,8 @@ public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleA
         }
     }
 
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults)
+    {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
@@ -204,7 +246,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleA
 
                 } else {
                     Toast.makeText(this, "permission denied", Toast.LENGTH_LONG).show();
-                    moveCamera(LUBLIN,14);
+                    moveCamera(LUBLIN, 14);
                 }
                 return;
             }
@@ -225,4 +267,52 @@ public class Map extends FragmentActivity implements OnMapReadyCallback, GoogleA
 
     }
 
+    public void onCameraMoveStarted(int reason) {
+        /*if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+
+        } else if (reason == GoogleMap.OnCameraMoveStartedListener
+                .REASON_API_ANIMATION) {
+            Toast.makeText(this, "The user tapped something on the map.",
+                    Toast.LENGTH_SHORT).show();
+        } else if (reason == GoogleMap.OnCameraMoveStartedListener
+                .REASON_DEVELOPER_ANIMATION) {
+            Toast.makeText(this, "The app moved the camera.",
+                    Toast.LENGTH_SHORT).show();
+        }*/
+    }
+
+    @Override
+    public void onCameraMove() {
+        mLastCameraPosition = mMap.getCameraPosition();
+    }
+
+    @Override
+    public void onCameraMoveCanceled() {
+//        Toast.makeText(this, "Camera movement canceled.",
+//                Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onCameraIdle() {
+//        Toast.makeText(this, "The camera has stopped moving.",
+//                Toast.LENGTH_SHORT).show();
+    }
+
+    void ZnakSledzenia(boolean s) {
+        if(checkLocationPermission())
+            mMap.setMyLocationEnabled(s);
+        if(mCurrLocationMarker != null) {
+            mCurrLocationMarker.remove();
+        }
+        if(!s) {
+            mCurrLocationMarker = mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude()))
+                    .title("Your last location"));
+            mMap.setOnMarkerClickListener(this);
+        }
+    }
+    public boolean onMarkerClick(final Marker marker) {
+        return false;
+    }
 }
+
