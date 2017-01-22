@@ -2,6 +2,7 @@ package pl.andrzeje.projektgrupowy;
 
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -26,7 +28,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -38,7 +39,8 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
         GoogleMap.OnCameraMoveListener,
         GoogleMap.OnCameraMoveCanceledListener,
         GoogleMap.OnCameraIdleListener,
-        GoogleMap.OnMarkerClickListener
+        GoogleMap.OnMarkerClickListener,
+        GoogleMap.OnMapLongClickListener
 {
 
     private GoogleApiClient mGoogleApiClient;
@@ -99,13 +101,45 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
         mMapUISet = mMap.getUiSettings();
         mMapUISet.setZoomControlsEnabled(true);
 
-        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+        mMap.setOnMapLongClickListener(this);
+
+        googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+
+            // Use default InfoWindow frame
             @Override
-            public void onMapLongClick(LatLng latLng) {
-                SendToast(latLng.toString() + " " + mMap.getCameraPosition().zoom);
+            public View getInfoWindow(Marker arg0) {
+                return null;
+            }
+
+            // Defines the contents of the InfoWindow
+            @Override
+            public View getInfoContents(Marker arg0) {
+
+                // Getting view from the layout file info_window_layout
+                View v = getLayoutInflater().inflate(R.layout.custom_info_window, null);
+
+                // Getting the position from the marker
+                LatLng latLng = arg0.getPosition();
+
+                // Getting reference to the TextView to set latitude
+                TextView tvLat = (TextView) v.findViewById(R.id.title);
+
+                // Getting reference to the TextView to set longitude
+                TextView tvLng = (TextView) v.findViewById(R.id.snippet);
+
+                // Setting the latitude
+                tvLat.setText("Latitude:" + latLng.latitude);
+
+                // Setting the longitude
+                tvLng.setText("Longitude:"+ latLng.longitude);
+
+                // Returning the view containing InfoWindow contents
+                return v;
 
             }
         });
+
+
 
     }
 
@@ -136,7 +170,8 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
         Log.d(TAG, "onStop");
         if (mGoogleApiClient != null) {
             if (mLocationRequest != null) {
-                //stopLocationUpdates();
+                stopLocationUpdates();
+                Log.d(TAG,"stopLocationUpdates!");
             }
             //mLastCameraPosition = mMap.getCameraPosition();
             mGoogleApiClient.disconnect();
@@ -314,5 +349,43 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
     public boolean onMarkerClick(final Marker marker) {
         return false;
     }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        Marker nowy = mMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title("testowy").snippet("TEST"));
+
+    }
+
 }
 
+
+class MyTask extends AsyncTask<Void, Void, Void> {
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+    }
+
+    @Override
+    protected Void doInBackground(Void... params) {
+        return null;
+    }
+
+    @Override
+    protected void onProgressUpdate(Void... values) {
+        super.onProgressUpdate(values);
+    }
+
+    @Override
+    protected void onPostExecute(Void result) {
+        super.onPostExecute(result);
+    }
+
+    @Override
+    protected void onCancelled() {
+        super.onCancelled();
+    }
+
+}
