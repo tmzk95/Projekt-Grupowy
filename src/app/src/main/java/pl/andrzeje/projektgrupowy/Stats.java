@@ -12,7 +12,7 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 public class Stats extends AppCompatActivity {
-
+    //komentarz
     private TextView total;
     private TextView current;
     private TextView percent;
