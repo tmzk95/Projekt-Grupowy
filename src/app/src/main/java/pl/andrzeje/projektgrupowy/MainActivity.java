@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         Button listOfSensors = (Button) findViewById(R.id.ListOfSensorsButton);
         Button proximitySensor = (Button) findViewById(R.id.ProximitySensorButton);
         Button orientationSensor = (Button) findViewById(R.id.OrientationSensorButton);
@@ -47,5 +48,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        this.overridePendingTransition(R.anim.anim_slide_in_right,R.anim.anim_slide_out_right); /// slide między aktywnościami
     }
 }

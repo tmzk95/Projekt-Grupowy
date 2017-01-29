@@ -13,7 +13,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -55,6 +54,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
     private static final String TAG = Map.class.getSimpleName();
     private static final float MaxDistFromCityCentre = 10000; // maksymalna odleglosc obecnej lokalizacji urzadzenia od zmiennej LUBLIN
 
+
     void SendToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
@@ -64,6 +64,9 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_map);
+
+        this.overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left); /// slide między aktywnościami
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -103,44 +106,6 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
 
         mMap.setOnMapLongClickListener(this);
 
-        googleMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-
-            // Use default InfoWindow frame
-            @Override
-            public View getInfoWindow(Marker arg0) {
-                return null;
-            }
-
-            // Defines the contents of the InfoWindow
-            @Override
-            public View getInfoContents(Marker arg0) {
-
-                // Getting view from the layout file info_window_layout
-                View v = getLayoutInflater().inflate(R.layout.custom_info_window, null);
-
-                // Getting the position from the marker
-                LatLng latLng = arg0.getPosition();
-
-                // Getting reference to the TextView to set latitude
-                TextView tvLat = (TextView) v.findViewById(R.id.title);
-
-                // Getting reference to the TextView to set longitude
-                TextView tvLng = (TextView) v.findViewById(R.id.snippet);
-
-                // Setting the latitude
-                tvLat.setText("Latitude:" + latLng.latitude);
-
-                // Setting the longitude
-                tvLng.setText("Longitude:"+ latLng.longitude);
-
-                // Returning the view containing InfoWindow contents
-                return v;
-
-            }
-        });
-
-
-
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -163,7 +128,6 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
             }
         }
     }
-
     @Override
     protected void onStop() {
         super.onStop();
@@ -176,8 +140,8 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
             //mLastCameraPosition = mMap.getCameraPosition();
             mGoogleApiClient.disconnect();
         }
+        finish();
     }
-
     @Override
     public void onBackPressed() {
         Log.d(TAG, "onBackPressed");

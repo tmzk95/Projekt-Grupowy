@@ -26,6 +26,9 @@ public class Stats extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_stats);
+
+        this.overridePendingTransition(R.anim.anim_slide_in_left,R.anim.anim_slide_out_left);  /// slide między aktywnościami
+
         total = (TextView) findViewById(R.id.textView1);
         current = (TextView) findViewById(R.id.textView2);
         percent = (TextView) findViewById(R.id.textView3);
@@ -37,8 +40,7 @@ public class Stats extends AppCompatActivity {
         back = (Button) findViewById(R.id.button);
         back.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Intent activityChangeIntent = new Intent(Stats.this, MainActivity.class);
-                Stats.this.startActivity(activityChangeIntent);
+                finish();
             }
         });
         obrazek= (ImageView) findViewById(R.id.imageView3);
@@ -67,6 +69,11 @@ public class Stats extends AppCompatActivity {
             obrazek.setImageResource(R.drawable.piec);
             ocena.setText("Za swoje dotychczasowe postępy otrzymujesz 5 gwiazdek! GRATULACJE LOLL");
         }
+
+    }
+    protected void onStop()
+    {
+        super.onStop();
 
     }
 }
