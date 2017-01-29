@@ -71,6 +71,8 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
+
         CheckBox toggle = (CheckBox) findViewById(R.id.cbSledzenie);
         toggle.setChecked(true);
         czySledzic = true;
