@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:text="Długość geograficzna: "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:id="@+id/longitudeiw"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/longitudeet"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:padding="2dp"
+            android:background="#FFF"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textAlignment="center" />
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:text="Szerokość geograficzna: "
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/latitudeiw"
+            android:layout_below="@+id/longitudeiw"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/latitudeet"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:padding="2dp"
+            android:background="#FFF"
+            android:textSize="14sp"
+            android:textStyle="italic"
+            android:textAlignment="center" />
+    </TableRow>
+
+
+</TableLayout>

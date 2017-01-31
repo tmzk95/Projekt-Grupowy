@@ -20,6 +20,5 @@ public class NewPlaces extends AppCompatActivity {
     public void onStop()
     {
         super.onStop();
-        finish();
     }
 }

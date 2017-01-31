@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -38,8 +39,8 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
         GoogleMap.OnCameraMoveListener,
         GoogleMap.OnCameraMoveCanceledListener,
         GoogleMap.OnCameraIdleListener,
-        GoogleMap.OnMarkerClickListener,
-        GoogleMap.OnMapLongClickListener
+        GoogleMap.OnMapLongClickListener,
+        GoogleMap.OnMarkerClickListener
 {
 
     private GoogleApiClient mGoogleApiClient;
@@ -50,7 +51,7 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
     private UiSettings mMapUISet;
     private CameraPosition mLastCameraPosition;
     private boolean czySledzic;
-    private static final LatLng LUBLIN = new LatLng(51.2473568, 22.5638809);
+    private static final LatLng LUBLIN = new LatLng(51.2473568, 22.5638809); // Ratusz w Lublinie :>
     private static final String TAG = Map.class.getSimpleName();
     private static final float MaxDistFromCityCentre = 10000; // maksymalna odleglosc obecnej lokalizacji urzadzenia od zmiennej LUBLIN
 
@@ -71,8 +72,6 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
-
         CheckBox toggle = (CheckBox) findViewById(R.id.cbSledzenie);
         toggle.setChecked(true);
         czySledzic = true;
@@ -88,11 +87,30 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter(){
+            @Override
+            public View getInfoWindow(Marker marker) {
+
+                return null;
+            }
+
+            @Override
+            public View getInfoContents(Marker marker) {
+                View v = getLayoutInflater().inflate(R.layout.info_window,null);
+                EditText etLong = (EditText) v.findViewById(R.id.longitudeet);
+                EditText etLat = (EditText) v.findViewById(R.id.latitudeet);
+                LatLng ll = marker.getPosition();
+                etLong.setText(String.format("%f",ll.longitude));
+                etLat.setText(String.format("%f",ll.latitude));
+
+                return v;
+            }
+        });
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         Log.d(TAG, "onMapReady");
 
         if (!checkLocationPermission()) {
-            SendToast("checkSelfPermission error");
+            SendToast("Mapy wymagają pozwolenia na lokalizowanie!");
             return;
         }
         mMap.setOnCameraIdleListener(this);
@@ -142,7 +160,6 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
             //mLastCameraPosition = mMap.getCameraPosition();
             mGoogleApiClient.disconnect();
         }
-        finish();
     }
     @Override
     public void onBackPressed() {
@@ -191,10 +208,12 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
 
     private void startLocationUpdates() {
         if (!checkLocationPermission()) {
-            SendToast("checkSelfPermission onConnected error");
+            SendToast("Mapy wymagają pozwolenia na lokalizacje!");
             return;
         }
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+        if(!LocationServices.FusedLocationApi.getLocationAvailability(mGoogleApiClient).isLocationAvailable())
+            SendToast("Włącz usługę lokalizacji!");
     }
 
     protected void stopLocationUpdates() {
@@ -312,10 +331,6 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
             mMap.setOnMarkerClickListener(this);
         }
     }
-    public boolean onMarkerClick(final Marker marker) {
-        return false;
-    }
-
     @Override
     public void onMapLongClick(LatLng latLng) {
         Marker nowy = mMap.addMarker(new MarkerOptions()
@@ -324,6 +339,10 @@ public class Map extends FragmentActivity implements OnMapReadyCallback,
 
     }
 
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        return false;
+    }
 }
 
 
